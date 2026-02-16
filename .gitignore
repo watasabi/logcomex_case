@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+env/
+.env
+
+# Data (Ignora tudo, exceto .gitkeep)
+data/external/*
+data/interim/*
+data/processed/*
+data/raw/*
+!data/raw/.gitkeep
+models/*
+!models/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IDE
+.vscode/
+.idea/
