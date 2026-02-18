@@ -20,3 +20,6 @@ dev = [
     "ipykernel>=7.2.0",
     "pyarrow>=23.0.1",
 ]
+ml = [
+    "scikit-learn>=1.8.0",
+]
