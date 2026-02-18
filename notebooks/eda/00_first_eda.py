@@ -80,7 +80,6 @@ def plot_categorical_interactive(df, col, target):
 
 
 def plot_time_evolution(df, time_col, target):
-    # Correção aqui: freq="ME" ao invés de "M"
     df_grouped = (
         df.groupby([pd.Grouper(key=time_col, freq="ME"), target])
         .size()

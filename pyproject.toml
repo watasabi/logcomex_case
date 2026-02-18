@@ -21,5 +21,7 @@ dev = [
     "pyarrow>=23.0.1",
 ]
 ml = [
+    "kmodes>=0.12.2",
+    "prince>=0.16.5",
     "scikit-learn>=1.8.0",
 ]
