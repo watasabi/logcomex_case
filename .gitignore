@@ -11,8 +11,6 @@ data/interim/*
 data/processed/*
 data/raw/*
 !data/raw/.gitkeep
-models/*
-!models/.gitkeep
 
 # Jupyter
 .ipynb_checkpoints

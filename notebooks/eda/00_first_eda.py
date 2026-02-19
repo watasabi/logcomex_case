@@ -33,6 +33,10 @@ CATEGORICAL_COLS = [
     "shipper_name",
     "country_origin_code",
 ]
+for col in CATEGORICAL_COLS:
+    print(f"{col}: {df[col].nunique()} categorias únicas")
+    print(f"  Top 3: {df[col].value_counts().nlargest(3).to_dict()}\n")
+    print("\n")
 
 for col in TIME_COLS:
     if col in df.columns:

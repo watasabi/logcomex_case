@@ -1,0 +1,8 @@
+mlflow==3.9.0
+cloudpickle==3.1.2
+lightning==2.6.1
+matplotlib==3.10.8
+numpy==2.4.2
+pandas==2.3.3
+scipy==1.17.0
+torch==2.10.0

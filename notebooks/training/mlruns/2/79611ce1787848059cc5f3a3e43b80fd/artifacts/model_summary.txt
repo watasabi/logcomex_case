@@ -1,0 +1,38 @@
+   | Name                             | Type               | Params | Mode  | FLOPs
+-----------------------------------------------------------------------------------------
+0  | model                            | BaseNetwork        | 169 K  | train | 0    
+1  | model.attention                  | FeatureAttention   | 213    | train | 0    
+2  | model.attention.attention_gate   | Sequential         | 213    | train | 0    
+3  | model.attention.attention_gate.0 | Linear             | 96     | train | 0    
+4  | model.attention.attention_gate.1 | BatchNorm1d        | 32     | train | 0    
+5  | model.attention.attention_gate.2 | ReLU               | 0      | train | 0    
+6  | model.attention.attention_gate.3 | Linear             | 85     | train | 0    
+7  | model.attention.attention_gate.4 | Sigmoid            | 0      | train | 0    
+8  | model.network                    | Sequential         | 169 K  | train | 0    
+9  | model.network.0                  | Linear             | 3.1 K  | train | 0    
+10 | model.network.1                  | BatchNorm1d        | 1.0 K  | train | 0    
+11 | model.network.2                  | ReLU               | 0      | train | 0    
+12 | model.network.3                  | Dropout            | 0      | train | 0    
+13 | model.network.4                  | Linear             | 131 K  | train | 0    
+14 | model.network.5                  | BatchNorm1d        | 512    | train | 0    
+15 | model.network.6                  | ReLU               | 0      | train | 0    
+16 | model.network.7                  | Dropout            | 0      | train | 0    
+17 | model.network.8                  | Linear             | 32.9 K | train | 0    
+18 | model.network.9                  | BatchNorm1d        | 256    | train | 0    
+19 | model.network.10                 | ReLU               | 0      | train | 0    
+20 | model.network.11                 | Dropout            | 0      | train | 0    
+21 | model.network.12                 | Linear             | 516    | train | 0    
+22 | train_acc                        | MulticlassAccuracy | 0      | train | 0    
+23 | val_acc                          | MulticlassAccuracy | 0      | train | 0    
+24 | test_acc                         | MulticlassAccuracy | 0      | train | 0    
+25 | train_f1                         | MulticlassF1Score  | 0      | train | 0    
+26 | val_f1                           | MulticlassF1Score  | 0      | train | 0    
+27 | test_f1                          | MulticlassF1Score  | 0      | train | 0    
+-----------------------------------------------------------------------------------------
+169 K     Trainable params
+0         Non-trainable params
+169 K     Total params
+0.679     Total estimated model params size (MB)
+28        Modules in train mode
+0         Modules in eval mode
+0         Total Flops

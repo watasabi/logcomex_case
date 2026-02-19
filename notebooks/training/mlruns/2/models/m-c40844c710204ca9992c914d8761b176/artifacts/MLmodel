@@ -1,0 +1,30 @@
+artifact_path: /home/rwp/code/logcomex_case/notebooks/training/mlruns/2/models/m-c40844c710204ca9992c914d8761b176/artifacts
+flavors:
+  python_function:
+    config:
+      device: null
+    data: data
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pytorch
+    pickle_module_name: mlflow.pytorch.pickle_module
+    python_version: 3.12.3
+  pytorch:
+    code: null
+    model_data: data
+    pytorch_version: 2.10.0+cu128
+is_signature_from_type_hint: false
+mlflow_version: 3.9.0
+model_id: m-c40844c710204ca9992c914d8761b176
+model_size_bytes: 727607
+model_uuid: m-c40844c710204ca9992c914d8761b176
+prompts: null
+run_id: dce4e13bcca048179fdb9925757621b0
+signature:
+  inputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float32", "shape": [-1, 5]}}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float16", "shape": [-1,
+    4]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-02-19 02:19:48.717411'
