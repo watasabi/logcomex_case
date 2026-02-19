@@ -21,7 +21,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 INPUT_WINDOW = 90
 OUTPUT_WINDOW = 30
 NUM_FEATURES = 4
-EPOCHS = 200
+EPOCHS = 50
 BATCH_SIZE = 32
 LR = 1e-3
 
