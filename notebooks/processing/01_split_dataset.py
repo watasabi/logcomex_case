@@ -2,9 +2,14 @@ import pandas as pd
 from pathlib import Path
 
 # config
-INPUT_DATA = "../../data/processed/01_data_mca.parquet"
-TRAIN_OUTPUT = "../../data/processed/train.parquet"
-TEST_OUTPUT = "../../data/processed/test.parquet"
+# TODO enable this if you want to use the dataset with mca features
+# INPUT_DATA = "../../data/processed/01_data_mca.parquet"
+# TRAIN_OUTPUT = "../../data/processed/train.parquet"
+# TEST_OUTPUT = "../../data/processed/test.parquet"
+
+INPUT_DATA = "../../data/processed/01_data_cleaned.parquet"
+TRAIN_OUTPUT = "../../data/processed/train_without_mca.parquet"
+TEST_OUTPUT = "../../data/processed/test_without_mca.parquet"
 TIME_COL = "yearmonth"
 TEST_SIZE = 0.2
 

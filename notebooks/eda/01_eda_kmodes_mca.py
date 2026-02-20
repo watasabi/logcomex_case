@@ -10,7 +10,6 @@ OUTPUT_DIR = Path("eda_html_reports")
 OUTPUT_DIR.mkdir(exist_ok=True)
 pio.templates.default = "plotly_white"
 
-# Cores oficiais para os canais (Fácil identificação visual)
 CHANNEL_COLORS = {
     "Verde": "#2ecc71",  # Verde
     "Amarelo": "#f1c40f",  # Amarelo
@@ -34,13 +33,11 @@ def reduce_cardinality(df, cols, top_n=15):
     return df_reduced
 
 
-# Carregar Dados
 df = pd.read_parquet("../../data/external/sample_data.parquet").drop(
     "document_number", axis=1
 )
 TARGET_COL = "channel"
 
-# Colunas Categoricas para Análise
 cols_to_analyze = [
     "transport_mode_pt",
     "ncm_code",
@@ -49,11 +46,9 @@ cols_to_analyze = [
     "clearance_place",
 ]
 
-# 1. Limpeza de Cardinalidade
 print("1. Processando dados (Redução de Cardinalidade)...")
 df_work = reduce_cardinality(df, cols_to_analyze, top_n=20)
 
-# Garantir que o target não tenha nulos para o plot
 df_work["Target_Channel"] = df[TARGET_COL].fillna("Unknown")
 
 # 3. Modelagem (K-Modes + MCA)
@@ -69,16 +64,13 @@ print("3. Executando MCA (Coordenadas X, Y)...")
 mca = prince.MCA(n_components=2, n_iter=3, random_state=42, engine="sklearn")
 mca_coords = mca.fit_transform(df_work[cols_to_analyze])
 
-# Adiciona coordenadas ao dataframe
 df_work["MCA_X"] = mca_coords[0]
 df_work["MCA_Y"] = mca_coords[1]
 
-# 4. Geração dos Gráficos (3 Arquivos)
 print("4. Gerando Gráficos...")
 
 common_hover = ["ncm_code", "transport_mode_pt", "shipper_name"]
 
-# ARQUIVO 1: Apenas Clusters (O que o algortimo viu)
 fig1 = px.scatter(
     df_work,
     x="MCA_X",
@@ -91,7 +83,6 @@ fig1 = px.scatter(
 fig1.write_html(OUTPUT_DIR / "view1_clusters_only.html")
 print(" -> Salvo: view1_clusters_only.html")
 
-# ARQUIVO 2: Apenas Target (A realidade de risco)
 fig2 = px.scatter(
     df_work,
     x="MCA_X",
@@ -105,7 +96,6 @@ fig2 = px.scatter(
 fig2.write_html(OUTPUT_DIR / "view2_target_only.html")
 print(" -> Salvo: view2_target_only.html")
 
-# ARQUIVO 3: Combinado (Cluster=Cor, Canal=Forma)
 fig3 = px.scatter(
     df_work,
     x="MCA_X",

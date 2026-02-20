@@ -1,9 +1,9 @@
-a name="readme-top"></a>
+<a name="readme-top"></a>
 
 <div align="center">
   <h1 align="center">Logcomex - Case Cientista de Dados (Pleno)</h1>
   <p align="center">
-    Modelo de classificação de risco aduaneiro para predição de canais de parametrização.
+    Classificação de risco aduaneiro e Forecasting Multivariado de volume operacional por canal.
     <br />
     <br />
     <img src="https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
@@ -27,22 +27,24 @@ a name="readme-top"></a>
 
 ## Sobre o Projeto
 
-Este projeto foi desenvolvido como resolução do case técnico para a posição de Cientista de Dados. O objetivo principal é prever o **Canal de Parametrização** (Verde, Amarelo, Vermelho ou Cinza) de Declarações de Importação (DIs), auxiliando na identificação prévia de riscos aduaneiros.
+Este projeto foi desenvolvido como resolução do case técnico para a posição de Cientista de Dados. A solução engloba duas vertentes de negócio:
+1. **Compliance (Classificação):** Prever o risco individual (Canal Verde, Amarelo, Vermelho ou Cinza) de Declarações de Importação (DIs).
+2. **Planejamento Operacional (Forecasting):** Prever o volume diário de parametrizações para cada canal, permitindo alocação eficiente de auditores da Receita Federal em picos de canais vermelhos/cinzas.
 
 ### Desafios Resolvidos
-* **Alta Cardinalidade:** Lidar com variáveis categóricas extremas (ex: consignee_code, ncm_code) sem causar explosão de dimensionalidade.
-* **Desbalanceamento Severo:** A grande maioria das importações é parametrizada no canal Verde, exigindo técnicas rigorosas de balanceamento de função de custo (class weights no Optuna e PyTorch).
-* **Vazamento Temporal:** Garantia de que o split de treino e teste respeita a ordem cronológica, simulando um ambiente de produção real.
+* **Alta Cardinalidade:** Resolução de variáveis categóricas extremas (ex: consignee_code, ncm_code) via MCA, evitando explosão de dimensionalidade.
+* **Desbalanceamento Severo:** O problema clássico (90%+ de canal Verde) foi mitigado de duas formas: (1) via `class_weights` balanceados nas funções de custo e (2) **arquiteturalmente**, transformando o problema em uma Regressão Multivariada Contínua (Séries Temporais), onde o foco é o volume real, diluindo o viés da classe majoritária.
+* **Vazamento Temporal:** Todo o projeto utiliza validação estritamente baseada no tempo (Split Cronológico e Janelas Deslizantes) para simular o cenário real de produção.
 
 <p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 
 ## Metodologia e Abordagem
 
-1. **Análise Exploratória (EDA):** Redução de dimensionalidade com **MCA (Multiple Correspondence Analysis)** e **t-SNE** para descoberta de padrões visuais de fraude, validado pelo Silhouette Score (Hamming) do **K-Modes**.
-2. **Processamento:** Agrupamento de cauda longa (Top N) para redução de cardinalidade antes da modelagem matemática.
-3. **Modelagem Clássica (Ensemble):** Otimização bayesiana com **Optuna** criando um VotingClassifier entre LightGBM e LogisticRegression.
-4. **Deep Learning (Atenção Tabular):** Construção de uma arquitetura baseada em **PyTorch Lightning** com um mecanismo customizado de Feature Gating (Attention) para ponderação dinâmica das features mais importantes.
-5. **Rastreabilidade:** Tracking completo dos modelos e hiperparâmetros no **MLflow**.
+1. **Análise Exploratória (EDA):** Redução de dimensionalidade com **MCA (Multiple Correspondence Analysis)** e **t-SNE** para descoberta de padrões visuais de fraude, validado pelo Silhouette Score do **K-Modes**.
+2. **Processamento Temporal state-of-the-art:** Pipeline de tratamento de séries temporais com transformação de Yeo-Johnson, filtros e feature gating.
+3. **Modelagem Clássica (Ensemble):** Otimização bayesiana com **Optuna** criando um VotingClassifier (LightGBM + LogisticRegression) para a tarefa de classificação individual.
+4. **Forecasting Multivariado (Deep Learning):** Arquitetura **Seq2Seq com DotAttention** (PyTorch Lightning) prevendo o volume futuro simultâneo dos 4 canais (Janela de 30 dias de saída baseada em 90 dias de histórico). O mecanismo de atenção permite extrair explicabilidade de negócio (Top Lags Históricos).
+5. **Rastreabilidade e Tracking:** Registro completo de hiperparâmetros, artefatos (gráficos SHAP e Atenção) e métricas (F1-Macro, SMAPE, R²) via **MLflow**.
 
 <p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 
@@ -60,21 +62,23 @@ Se você ainda não possui o uv instalado em sua máquina, instale-o com o coman
 `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
 
 ### 2. Sincronizando o Ambiente
-Com o uv instalado, clone este repositório, acesse a raiz do projeto e execute a sincronização. O uv criará o .venv automaticamente e instalará todas as dependências isoladas, baseadas no arquivo uv.lock.
+Com o uv instalado, clone este repositório, acesse a raiz do projeto e execute a sincronização. O uv criará o `.venv` automaticamente e instalará todas as dependências isoladas.
 
 `uv sync`
 
-### 3. Rodando os Scripts de Treinamento
-Você pode rodar qualquer script do pipeline prefixando-o com uv run.
+### 3. Rodando os Scripts
+Os pipelines estão divididos nas tarefas de Classificação Clássica e Forecasting Profundo. Execute via `uv run`:
 
+**Processamento dos Dados:**
 `uv run python notebooks/processing/00_mca_processing.py`
 `uv run python notebooks/processing/01_split_dataset.py`
+`uv run python notebooks/processing/02_prep_forecasting.py`
 
-Treinar os modelos:
+**Treinamento dos Modelos:**
 `uv run python notebooks/training/00_classicalmodel.py`
-`uv run python notebooks/training/01_deepmodel.py`
+`uv run python notebooks/training/03_forecasting_seq2seq.py`
 
-Visualizar o Tracking no MLflow:
+**Visualizar o Dashboard de Experimentos:**
 `uv run mlflow ui --backend-store-uri sqlite:///notebooks/training/mlflow.db`
 
 <p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
@@ -86,12 +90,13 @@ Visualizar o Tracking no MLflow:
 ├── config
 ├── data
 │   ├── external
-│   │   ├── Cientista de Dados - Pleno (1).zip
 │   │   ├── sample_data.parquet
 │   │   └── teste-pleno.pdf
 │   ├── interim
 │   ├── processed
 │   │   ├── 01_data_mca.parquet
+│   │   ├── ts_train.parquet     <- Dados diários agrupados (Treino)
+│   │   ├── ts_test.parquet      <- Dados diários agrupados (Teste)
 │   │   ├── test.parquet
 │   │   └── train.parquet
 │   └── raw
@@ -106,16 +111,17 @@ Visualizar o Tracking no MLflow:
 │   │   └── 03_eda_kmodes_silhoutte.py
 │   ├── processing
 │   │   ├── 00_mca_processing.py
-│   │   └── 01_split_dataset.py
+│   │   ├── 01_split_dataset.py
+│   │   └── 02_prep_forecasting.py  <- Agrupador de Séries Temporais
 │   └── training
 │       ├── 00_classicalmodel.py
-│       ├── 01_deepmodel.py
-│       ├── confusion_matrix_dl.png
+│       ├── 03_forecasting_seq2seq.py <- Modelo Profundo de Previsão
+│       ├── multivariate_forecast.png
+│       ├── attention_heatmap.png
 │       ├── lightning_logs/
 │       ├── mlflow.db
 │       └── mlruns/
 ├── pipe
-│   ├── artefacts
 │   ├── orchestrator.py
 │   └── steps
 │       ├── 01_load.py
@@ -124,10 +130,6 @@ Visualizar o Tracking no MLflow:
 │       └── 04_postprocess.py
 ├── pyproject.toml
 ├── README.md
-├── references
-├── reports
-│   └── figures/
 ├── src
-│   ├── seq2seq attention_example.ipynb
-│   └── ts_preprocessing.py
+│   └── ts_preprocessing.py   <- Biblioteca utilitária (Pipeline de TS)
 └── uv.lock

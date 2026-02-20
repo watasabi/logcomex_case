@@ -264,3 +264,9 @@ with mlflow.start_run():
     os.remove(fc_path)
     os.remove(heatmap_path)
     os.remove(bar_path)
+
+# save the model
+model_path = "seq2seq_attention.pth"
+torch.save(model.state_dict(), model_path)
+mlflow.log_artifact(model_path)
+os.remove(model_path)
