@@ -32,7 +32,7 @@ Este projeto foi desenvolvido como resolução do case técnico para a posição
 2. **Planejamento Operacional (Forecasting):** Prever o volume diário de parametrizações para cada canal, permitindo alocação eficiente de auditores da Receita Federal em picos de canais vermelhos/cinzas.
 
 ### Desafios Resolvidos
-* **Alta Cardinalidade:** Resolução de variáveis categóricas extremas (ex: consignee_code, ncm_code) via MCA, evitando explosão de dimensionalidade.
+* **Alta Cardinalidade:** Resolução de variáveis categóricas extremas (ex: consignee_code, ncm_code) via **Target Encoding** no modelo clássico, substituindo categorias por probabilidades históricas e evitando a perda de variância comum ao MCA.
 * **Desbalanceamento Severo:** O problema clássico (90%+ de canal Verde) foi mitigado de duas formas: (1) via `class_weights` balanceados nas funções de custo e (2) **arquiteturalmente**, transformando o problema em uma Regressão Multivariada Contínua (Séries Temporais), onde o foco é o volume real, diluindo o viés da classe majoritária.
 * **Vazamento Temporal:** Todo o projeto utiliza validação estritamente baseada no tempo (Split Cronológico e Janelas Deslizantes) para simular o cenário real de produção.
 
@@ -41,9 +41,9 @@ Este projeto foi desenvolvido como resolução do case técnico para a posição
 ## Metodologia e Abordagem
 
 1. **Análise Exploratória (EDA):** Redução de dimensionalidade com **MCA (Multiple Correspondence Analysis)** e **t-SNE** para descoberta de padrões visuais de fraude, validado pelo Silhouette Score do **K-Modes**.
-2. **Processamento Temporal state-of-the-art:** Pipeline de tratamento de séries temporais com transformação de Yeo-Johnson, filtros e feature gating.
-3. **Modelagem Clássica (Ensemble):** Otimização bayesiana com **Optuna** criando um VotingClassifier (LightGBM + LogisticRegression) para a tarefa de classificação individual.
-4. **Forecasting Multivariado (Deep Learning):** Arquitetura **Seq2Seq com DotAttention** (PyTorch Lightning) prevendo o volume futuro simultâneo dos 4 canais (Janela de 30 dias de saída baseada em 90 dias de histórico). O mecanismo de atenção permite extrair explicabilidade de negócio (Top Lags Históricos).
+2. **Processamento Temporal state-of-the-art:** Pipeline customizado de tratamento de séries temporais com transformação de Yeo-Johnson, filtros e feature gating.
+3. **Modelagem Clássica (Ensemble):** Otimização bayesiana com **Optuna** criando um VotingClassifier (LightGBM + LogisticRegression) blindado com Target Encoding para a tarefa de classificação individual.
+4. **Forecasting Multivariado (Deep Learning):** Arquitetura **Seq2Seq com DotAttention** (PyTorch Lightning) prevendo o volume futuro simultâneo dos 4 canais. O mecanismo de atenção permite extrair explicabilidade de negócio (Top Lags Históricos).
 5. **Rastreabilidade e Tracking:** Registro completo de hiperparâmetros, artefatos (gráficos SHAP e Atenção) e métricas (F1-Macro, SMAPE, R²) via **MLflow**.
 
 <p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
@@ -67,16 +67,19 @@ Com o uv instalado, clone este repositório, acesse a raiz do projeto e execute 
 `uv sync`
 
 ### 3. Rodando os Scripts
-Os pipelines estão divididos nas tarefas de Classificação Clássica e Forecasting Profundo. Execute via `uv run`:
+Os pipelines estão divididos nas tarefas de Classificação Clássica, Forecasting Profundo e Respostas de Negócio. Execute via `uv run`:
 
 **Processamento dos Dados:**
-`uv run python notebooks/processing/00_mca_processing.py`
+`uv run python notebooks/processing/03_processing_without_mca.py`
 `uv run python notebooks/processing/01_split_dataset.py`
-`uv run python notebooks/processing/02_prep_forecasting.py`
+`uv run python notebooks/processing/02_timeseries_approach.py`
 
 **Treinamento dos Modelos:**
-`uv run python notebooks/training/00_classicalmodel.py`
-`uv run python notebooks/training/03_forecasting_seq2seq.py`
+`uv run python notebooks/training/03_classicalmodel.py`
+`uv run python notebooks/training/02_forecasting.py`
+
+**Geração de Relatórios e Respostas de Negócio (SHAP):**
+`uv run python notebooks/eda/04_questions.py`
 
 **Visualizar o Dashboard de Experimentos:**
 `uv run mlflow ui --backend-store-uri sqlite:///notebooks/training/mlflow.db`
@@ -85,51 +88,47 @@ Os pipelines estão divididos nas tarefas de Classificação Clássica e Forecas
 
 ## Organização e Estrutura
 
+Diretórios de logs extensos (`mlruns`, `lightning_logs`) e caches foram omitidos para melhor visualização da arquitetura macro.
+
 ```text
 .
-├── config
-├── data
-│   ├── external
+├── config/
+├── data/
+│   ├── external/
 │   │   ├── sample_data.parquet
 │   │   └── teste-pleno.pdf
-│   ├── interim
-│   ├── processed
-│   │   ├── 01_data_mca.parquet
-│   │   ├── ts_train.parquet     <- Dados diários agrupados (Treino)
-│   │   ├── ts_test.parquet      <- Dados diários agrupados (Teste)
-│   │   ├── test.parquet
-│   │   └── train.parquet
-│   └── raw
-├── LICENSE
-├── models
-│   └── ensemble_model.pkl
-├── notebooks
-│   ├── eda
+│   ├── processed/
+│   │   ├── 01_data_cleaned.parquet
+│   │   ├── ts_train.parquet          <- Dados diários agrupados (Treino TS)
+│   │   ├── ts_test.parquet           <- Dados diários agrupados (Teste TS)
+│   │   ├── train.parquet
+│   │   └── test.parquet
+│   └── raw/
+├── models/
+│   ├── best_deep_model.pth           <- Pesos da Rede Neural
+│   ├── seq2seq_attention.pth         <- Pesos da Seq2Seq
+│   └── ensemble_model.pkl            <- Pipeline final (TargetEncoder + Voting)
+├── notebooks/
+│   ├── eda/
 │   │   ├── 00_first_eda.py
-│   │   ├── 01_eda_kmodes_mca.py
-│   │   ├── 02_eda_kmodes_tsne.py
-│   │   └── 03_eda_kmodes_silhoutte.py
-│   ├── processing
-│   │   ├── 00_mca_processing.py
-│   │   ├── 01_split_dataset.py
-│   │   └── 02_prep_forecasting.py  <- Agrupador de Séries Temporais
-│   └── training
-│       ├── 00_classicalmodel.py
-│       ├── 03_forecasting_seq2seq.py <- Modelo Profundo de Previsão
-│       ├── multivariate_forecast.png
-│       ├── attention_heatmap.png
-│       ├── lightning_logs/
-│       ├── mlflow.db
-│       └── mlruns/
-├── pipe
+│   │   ├── 01_eda_kmodes_mca.py      <- Scripts de clusterização visual
+│   │   └── 04_questions.py           <- Respostas de Negócio e Explicabilidade SHAP
+│   ├── processing/
+│   │   ├── 01_split_dataset.py       <- Validação Estritamente Temporal
+│   │   ├── 02_timeseries_approach.py <- Agrupador de Séries Temporais
+│   │   └── 03_processing_without_mca.py
+│   └── training/
+│       ├── 02_forecasting.py         <- Modelo Profundo de Previsão Multivariada
+│       ├── 03_classicalmodel.py      <- Modelo Clássico (Optuna + MLflow)
+│       └── mlflow.db                 <- Banco de dados de tracking
+├── pipe/
 │   ├── orchestrator.py
-│   └── steps
-│       ├── 01_load.py
-│       ├── 02_preprocess.py
-│       ├── 03_inference.py
-│       └── 04_postprocess.py
+│   └── steps/                        <- Mock de deploy em produção
+├── reports/
+│   └── figures/
+│       ├── business/                 <- Gráficos de Negócio e Impacto (SHAP)
+│       └── eda/                      <- Heatmaps e Visões t-SNE (HTMLs Plotly)
+├── src/
+│   └── ts_preprocessing.py           <- Biblioteca utilitária (Pipeline de TS state-of-the-art)
 ├── pyproject.toml
-├── README.md
-├── src
-│   └── ts_preprocessing.py   <- Biblioteca utilitária (Pipeline de TS)
 └── uv.lock
