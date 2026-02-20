@@ -1,0 +1,23 @@
+artifact_path: /home/rwp/code/logcomex_case/notebooks/eda/mlruns/2/models/m-3d4ba2704569478bb82f3d780f6145b5/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.3
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+mlflow_version: 3.9.0
+model_id: m-3d4ba2704569478bb82f3d780f6145b5
+model_size_bytes: 5651322
+model_uuid: m-3d4ba2704569478bb82f3d780f6145b5
+prompts: null
+run_id: 23a1fdfea36a4b8a98baa9fe2e8310ce
+utc_time_created: '2026-02-20 12:25:44.055154'

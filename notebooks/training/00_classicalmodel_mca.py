@@ -106,7 +106,7 @@ def objective(trial):
 
 with mlflow.start_run(run_name="Optuna_Optimization"):
     study = optuna.create_study(direction="maximize")
-    study.optimize(objective, n_trials=300, show_progress_bar=True)
+    study.optimize(objective, n_trials=50, show_progress_bar=True)
 
 df_trials = study.trials_dataframe()
 
@@ -166,4 +166,4 @@ print(f"Recall do Ensemble: {recall_score(y_test, preds_ensemble, average='macro
 # save model
 import joblib
 
-joblib.dump(ensemble_pipeline, "../../models/ensemble_model.pkl")
+joblib.dump(ensemble_pipeline, "../../models/ensemble_model_mca.pkl")

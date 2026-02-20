@@ -28,8 +28,8 @@ import warnings
 warnings.filterwarnings("ignore")
 SEED = 42
 
-df_train = pd.read_parquet("../../data/processed/train.parquet")
-df_test = pd.read_parquet("../../data/processed/test.parquet")
+df_train = pd.read_parquet("../../data/processed/train_without_mca.parquet")
+df_test = pd.read_parquet("../../data/processed/test_without_mca.parquet")
 
 cols_to_drop = ["channel", "registry_date", "yearmonth", "document_number"]
 X_train = df_train.drop(columns=[c for c in cols_to_drop if c in df_train.columns])
@@ -120,7 +120,7 @@ def objective(trial):
 
 with mlflow.start_run(run_name="optuna_optimization"):
     study = optuna.create_study(direction="maximize")
-    study.optimize(objective, n_trials=100, show_progress_bar=True)
+    study.optimize(objective, n_trials=50, show_progress_bar=True)
 
 df_trials = study.trials_dataframe()
 
